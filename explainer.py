@@ -179,7 +179,33 @@ class Zorro(AbstractGraphExplainer):
 
     def argmax_distortion_general(self,
                                   previous_distortion,
-                                  possible_el
+                                  possible_elements,
+                                  selected_elements,
+                                  initialization=False,
+                                  save_initial_improve=False,
+                                  **distortion_kwargs,
+                                  ):
+        if self.greedy:
+            # determine if node or features
+            if selected_elements is not self.selected_nodes and selected_elements is not self.selected_features:
+                raise Exception("Neither features nor nodes selected")
+            if initialization:
+                if self.epoch == 1 and self.precomputed_distortion_info:
+                    if selected_elements is self.selected_nodes:
+                        best_element = self.precomputed_distortion_info["best_node"]
+                        best_distortion_improve = self.precomputed_distortion_info["best_node_distortion_improve"]
+                        raw_sorted_elements = self.precomputed_distortion_info["raw_unsorted_nodes"]
+                        self.logger.debug("Used precomputed node info")
+                    else:
+                        best_element = self.precomputed_distortion_info["best_feature"]
+                        best_distortion_improve = self.precomputed_distortion_info["best_feature_distortion_improve"]
+                        raw_sorted_elements = self.precomputed_distortion_info["raw_unsorted_features"]
+                        self.logger.debug("Used precomputed feature info")
+
+                else:
+                    best_element, best_distortion_improve, raw_sorted_elements = self.argmax_distortion_general_full(
+                        previous_distortion,
+                        possible_elements,
                         selected_elements,
                         save_all_pairs=True,
                         **distortion_kwargs,
